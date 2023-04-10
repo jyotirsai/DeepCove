@@ -4,6 +4,7 @@ from torch import nn
 from diffusers import DDPMScheduler, DDIMScheduler, UNet2DModel 
 from matplotlib import pyplot as plt 
 from tqdm import tqdm
+from torch.utils.data import DataLoader
 
 # define class-conditioned u-net model from huggingface
 class ClassConditionedUNet(nn.module):
@@ -89,3 +90,43 @@ class Diffuser():
     fig, ax = plt.subplots(1, 1, figsize=(12, 12))
     ax.imshow(torchvision.utils.make_grid(x.detach().cpu().clip(-1, 1), nrow=8)[0], cmap='Greys')
     return x
+
+if __name__ == "__main__":
+  device = 'mps' if torch.backends.mps.is_available() else 'cuda' if torch.cuda.is_available() else 'cpu'
+  
+  # import dataset
+  mnist = torchvision.datasets.MNIST(root="mnist/", train=True, download=True, transform=torchvision.transforms.ToTensor())
+
+  # create dataloaders
+  train_dataloader = DataLoader(mnist, batch_size=128, shuffle=True)
+
+  # generate images
+  diffuser = Diffuser(dataloader=train_dataloader,
+                    num_train_timesteps=1000, 
+                    beta_schedule='squaredcos_cap_v2', 
+                    num_classes=10, 
+                    class_emb_size=4, 
+                    sample_size=28, 
+                    c_in=1, 
+                    c_out=1)
+  diffuser.train(n_epochs=150, lr=1e-4)
+  samples = diffuser.sample()
+
+  # generate 5040 images
+  tests = []
+  for _ in range(63):
+    samples = diffuser.sample()
+    tests.append(samples)
+  
+  # save images
+  torch.save(tests, 'tests_ddpm.pt')
+
+  # add class to images
+  annotated_tests = []
+  for batch in tests:
+     for i in range(len(batch)):
+        cur_num = int(i/8)
+        annotated_tests.append((batch[i].cpu(), cur_num))
+  
+  # save images + class
+  torch.save(annotated_tests, 'annotated_tests_ddpm.pt')

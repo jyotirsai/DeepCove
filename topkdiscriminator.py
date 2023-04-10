@@ -62,6 +62,7 @@ class TopKDiscriminator:
 
         return error_idx
 
+
 if __name__ == '__main__':
     device = 'mps' if torch.backends.mps.is_available() else 'cuda' if torch.cuda.is_available() else 'cpu'
     
@@ -102,4 +103,3 @@ if __name__ == '__main__':
     torch.save(ddim_corrected_k_1, 'ddim_corrected_k_1.pt')
     torch.save(ddpm_corrected_k_1, 'ddpm_corrected_k_2.pt')
     torch.save(ddim_corrected_k_1, 'ddim_corrected_k_2.pt')
-

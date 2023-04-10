@@ -2,6 +2,10 @@ import torch
 from torchvision.models.feature_extraction import create_feature_extractor, get_graph_node_names
 from collections import OrderedDict
 from tqdm.auto import tqdm
+from torch.utils.data import DataLoader
+from torchvision import datasets
+from torchvision.transforms import ToTensor
+from model.LeNet5 import LeNet5
 
 def profiler(model, device, dataloader):
     model.to(device)
@@ -47,3 +51,22 @@ def profiler(model, device, dataloader):
     
     return cov_dict
 
+if __name__ == "__main__":
+    device = 'mps' if torch.backends.mps.is_available() else 'cuda' if torch.cuda.is_available() else 'cpu'
+
+    # import datasets
+    train_dataset = datasets.MNIST(root="mnist/", train=True, download=True, transform=ToTensor())
+    test_dataset = datasets.MNIST(root='mnist/', train=False, transform=ToTensor())
+
+    # create dataloaders
+    batch_size = 256
+    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+
+    # load in model
+    model = LeNet5().to(device)
+    state_dict = torch.load('./model/lenet5.pt')
+    model.load_state_dict(state_dict)
+    model.eval()
+
+    # profile model and data
+    cov_dict = profiler(model, device, train_dataloader)
