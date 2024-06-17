@@ -15,3 +15,5 @@ models are effective at augmenting data and improving the robustness of neural n
 | DDPM  	| 2.91           	| 3.85            	| 2.26    	| 20.09     	|
 | DDIM  	| 5.82           	| 5.13            	| 4.78    	| 49.51     	|
 
+Although diffusion models produce less eroneous and better quality samples compared to traditional data augmentation strategies, they do not show a significant boost in coverage. They also come at a high computation cost.
+
